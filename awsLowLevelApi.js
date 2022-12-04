@@ -1,6 +1,7 @@
-#!/usr/bin/env node
+// 出典:
+// https://dev.classmethod.jp/articles/api-gateway-iam-authentication-sigv4/
+// https://nodejs.org/api/http.html#httprequesturl-options-callback
 
-// 出典: https://dev.classmethod.jp/articles/api-gateway-iam-authentication-sigv4/
 const core = require('aws-sdk/lib/core')
 const aws = require('aws-sdk')
 const https = require('https')
@@ -65,23 +66,8 @@ const httpsRequest = (url, options, bodyJson) => {
   req.end()
 }
 
-const main = ({ serviceName, region, url, headers, body }) => {
+module.exports = ({ serviceName, region, url, headers, body }) => {
   const bodyJson = JSON.stringify(body)
   const options = generateOptions({ serviceName, region, url, headers, bodyJson })
   httpsRequest(url, options, bodyJson)
 }
-
-main({
-  serviceName: 'execute-api',
-  region: 'ap-northeast-1',
-  url: process.env.API_GATEWAY_URL,
-  headers: {
-    'foo': 'bar',
-    'Content-Type': 'application/json',
-  },
-  body: {
-    one: 1,
-    two: 2,
-    three: 3,
-  },
-})
