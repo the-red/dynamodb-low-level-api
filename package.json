@@ -4,6 +4,9 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "license": "MIT",
+  "engines": {
+    "node": "18.x"
+  },
   "dependencies": {
     "aws-sdk": "^2.1267.0",
     "dotenv": "^16.0.3"
