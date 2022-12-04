@@ -1,5 +1,4 @@
-// 出典:
-// https://dev.classmethod.jp/articles/api-gateway-iam-authentication-sigv4/
+// 出典: https://dev.classmethod.jp/articles/api-gateway-iam-authentication-sigv4/
 
 // @ts-expect-error
 import { Signers } from 'aws-sdk/lib/core'
@@ -9,15 +8,15 @@ import type { AxiosResponse, AxiosError } from 'axios'
 import dotenv from 'dotenv'
 dotenv.config()
 
-type Props<D> = {
+type Props<Request> = {
   serviceName: string
   region: string
   url: string
   headers: Record<string, string>
-  body: D
+  body: Request
 }
 
-const generateOptions = <D>({ serviceName, region, url, headers, body }: Props<D>) => {
+const generateOptions = <Request>({ serviceName, region, url, headers, body }: Props<Request>) => {
   const bodyJson = JSON.stringify(body)
 
   // URLからホスト、パス、クエリストリングを抽出

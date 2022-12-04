@@ -11,7 +11,6 @@ type Request = {
     Name: { S: string }
   }
 }
-
 type Response = {
   Item: {
     AnimalType: { S: string }

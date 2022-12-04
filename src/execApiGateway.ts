@@ -3,7 +3,6 @@
 import { post } from './awsLowLevelApi'
 
 type Request = Record<string, number>
-
 type Response = any
 
 post<Request, Response>({
