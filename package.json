@@ -11,9 +11,12 @@
     "node": "18.x"
   },
   "dependencies": {
-    "aws-sdk": "^2.1267.0",
-    "axios": "^1.2.0",
-    "dotenv": "^16.0.3"
+    "@aws-crypto/sha256-universal": "^2.0.2",
+    "@aws-sdk/credential-provider-node": "^3.223.0",
+    "@aws-sdk/protocol-http": "^3.222.0",
+    "@aws-sdk/signature-v4": "^3.222.0",
+    "dotenv": "^16.0.3",
+    "undici": "^5.13.0"
   },
   "devDependencies": {
     "@types/node": "^18.11.10",

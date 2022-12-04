@@ -1,66 +1,45 @@
-// 出典: https://dev.classmethod.jp/articles/api-gateway-iam-authentication-sigv4/
+// 出典: https://dev.classmethod.jp/articles/api-gateway-iam-authentication-sigv4-aws-sdk-v3/
 
-// @ts-expect-error
-import { Signers } from 'aws-sdk/lib/core'
-import aws from 'aws-sdk'
-import axios from 'axios'
-import type { AxiosResponse, AxiosError } from 'axios'
 import dotenv from 'dotenv'
+import { HttpRequest } from '@aws-sdk/protocol-http'
+import { SignatureV4 } from '@aws-sdk/signature-v4'
+import { Sha256 } from '@aws-crypto/sha256-universal'
+import { defaultProvider } from '@aws-sdk/credential-provider-node'
+import { request } from 'undici'
 dotenv.config()
 
-type Props<Request> = {
+export const post = async <T = any>({
+  serviceName,
+  region,
+  url,
+  headers,
+  body,
+}: {
   serviceName: string
   region: string
   url: string
   headers: Record<string, string>
-  body: Request
-}
-
-const generateOptions = <Request>({ serviceName, region, url, headers, body }: Props<Request>) => {
-  const bodyJson = JSON.stringify(body)
-
-  // URLからホスト、パス、クエリストリングを抽出
-  const urlObj = new URL(url)
-  const host = urlObj.host
-  const path = urlObj.pathname
-  const querystring = urlObj.search.slice(1)
-
-  const options = {
+  body: T
+}) => {
+  const apiUrl = new URL(url)
+  const signatureV4 = new SignatureV4({
+    service: serviceName,
+    region: region,
+    credentials: defaultProvider(),
+    sha256: Sha256,
+  })
+  const httpRequest = new HttpRequest({
     headers: {
       ...headers,
-      'Content-Length': Buffer.byteLength(bodyJson),
-      host,
+      host: apiUrl.hostname,
     },
-
-    body: bodyJson,
-    pathname: () => path,
-    methodIndex: 'post',
-    search: () => (querystring ? querystring : ''),
-    region: region,
+    hostname: apiUrl.hostname,
     method: 'POST',
-  }
+    path: apiUrl.pathname,
+    body: JSON.stringify(body),
+  })
 
-  const accessKey = process.env.AWS_ACCESS_KEY_ID!
-  const secretKey = process.env.AWS_SECRET_ACCESS_KEY!
-  const credential = new aws.Credentials(accessKey, secretKey)
-  const now = new Date()
-  const signer = new Signers.V4(options, serviceName)
-  // SigV4署名
-  signer.addAuthorization(credential, now)
+  const signedRequest = await signatureV4.sign(httpRequest)
 
-  return options
-}
-
-export const post = async <Request, Response>(props: Props<Request>) => {
-  try {
-    const options = generateOptions<Request>(props)
-    const res = await axios<Response, AxiosResponse<Response, Request>, Request>(props.url, {
-      ...options,
-      data: props.body,
-    })
-    return res.data
-  } catch (e) {
-    const error = e as AxiosError
-    console.error(error.response?.data ?? error)
-  }
+  return request(signedRequest)
 }

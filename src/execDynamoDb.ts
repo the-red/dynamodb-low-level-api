@@ -2,6 +2,7 @@
 
 // 出典: https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Programming.LowLevelAPI.html#Programming.LowLevelAPI.RequestFormat
 
+import { inspect } from 'util'
 import { post } from './awsLowLevelApi'
 
 type Request = {
@@ -18,7 +19,7 @@ type Response = {
   }
 }
 
-post<Request, Response>({
+post<Request>({
   serviceName: 'dynamodb',
   region: 'ap-northeast-1',
   url: 'https://dynamodb.ap-northeast-1.amazonaws.com',
@@ -34,6 +35,15 @@ post<Request, Response>({
       Name: { S: 'Fido' },
     },
   },
-}).then((data) => {
-  console.log(data)
+}).then(async (res) => {
+  const body: Response = await res.body.json()
+  console.log(
+    inspect(
+      {
+        statusCode: res.statusCode,
+        body,
+      },
+      { colors: true, depth: Infinity }
+    )
+  )
 })
