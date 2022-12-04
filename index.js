@@ -17,33 +17,33 @@ function main() {
   const serviceName = 'execute-api'
 
   // Signers.V4クラスのコンストラクタに渡すオプションを作成します。
-  const options = {
+  const request = {
     // api gatewayのURL
     url: 'https://XXXXXXXXX.execute-api.ap-northeast-1.amazonaws.com/dev/',
     headers: {},
   }
 
   // api gatewayのURLからホスト、パス、クエリストリングを抽出
-  const parts = options.url.split('?')
+  const parts = request.url.split('?')
   const host = parts[0].substr(8, parts[0].indexOf('/', 8) - 8)
   const path = parts[0].substr(parts[0].indexOf('/', 8))
   const querystring = parts[1]
 
   // V4クラスのコンストラクタの引数に沿う形でoptionsを作成
   const now = new Date()
-  options.headers.host = host
-  options.pathname = () => path
-  options.methodIndex = 'post'
-  options.search = () => (querystring ? querystring : '')
-  options.region = 'ap-northeast-1'
-  options.method = 'POST'
+  request.headers.host = host
+  request.pathname = () => path
+  request.methodIndex = 'post'
+  request.search = () => (querystring ? querystring : '')
+  request.region = 'ap-northeast-1'
+  request.method = 'POST'
 
   // V4クラスのインスタンスを作成
-  const signer = new core.Signers.V4(options, serviceName)
+  const signer = new core.Signers.V4(request, serviceName)
 
   // SigV4署名
   signer.addAuthorization(credential, now)
 
   //　署名されたヘッダーを出力
-  console.log(options.headers)
+  console.log(request.headers)
 }
