@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 
-const request = require('./awsLowLevelApi')
+// 出典: https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Programming.LowLevelAPI.html#Programming.LowLevelAPI.RequestFormat
+
+import request from './awsLowLevelApi'
 
 request({
   serviceName: 'dynamodb',
