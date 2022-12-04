@@ -15,6 +15,7 @@
     "@aws-sdk/credential-provider-node": "^3.223.0",
     "@aws-sdk/protocol-http": "^3.222.0",
     "@aws-sdk/signature-v4": "^3.222.0",
+    "@aws-sdk/util-dynamodb": "^3.223.0",
     "dotenv": "^16.0.3",
     "undici": "^5.13.0"
   },

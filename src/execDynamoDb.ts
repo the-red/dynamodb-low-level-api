@@ -4,22 +4,9 @@
 
 import { inspect } from 'util'
 import { post } from './awsLowLevelApi'
+import { marshall, unmarshall } from '@aws-sdk/util-dynamodb'
 
-type Request = {
-  TableName: string
-  Key: {
-    AnimalType: { S: string }
-    Name: { S: string }
-  }
-}
-type Response = {
-  Item: {
-    AnimalType: { S: string }
-    Name: { S: string }
-  }
-}
-
-post<Request>({
+post({
   serviceName: 'dynamodb',
   region: 'ap-northeast-1',
   url: 'https://dynamodb.ap-northeast-1.amazonaws.com',
@@ -30,18 +17,25 @@ post<Request>({
   },
   body: {
     TableName: 'Pets',
-    Key: {
-      AnimalType: { S: 'Dog' },
-      Name: { S: 'Fido' },
-    },
+    Key: marshall({
+      AnimalType: 'Dog',
+      Name: 'Fido',
+    }),
   },
 }).then(async (res) => {
-  const body: Response = await res.body.json()
+  const body = await res.body.json()
+  let unmarshalled
+  try {
+    unmarshalled = unmarshall(body?.Item)
+  } catch {
+    unmarshalled = {}
+  }
   console.log(
     inspect(
       {
         statusCode: res.statusCode,
-        body,
+        data: body,
+        unmarshalled,
       },
       { colors: true, depth: Infinity }
     )
