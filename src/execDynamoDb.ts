@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 // 出典: https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Programming.LowLevelAPI.html#Programming.LowLevelAPI.RequestFormat
 
 import { inspect } from 'util'
