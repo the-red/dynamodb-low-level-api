@@ -3,47 +3,85 @@
 // 出典: https://dev.classmethod.jp/articles/api-gateway-iam-authentication-sigv4/
 const core = require('aws-sdk/lib/core')
 const aws = require('aws-sdk')
+const https = require('https')
 require('dotenv').config()
 
-// アクセスキーとシークレットアクセスキーを設定
-const accessKey = process.env.AWS_ACCESS_KEY_ID
-const secretKey = process.env.AWS_SECRET_ACCESS_KEY
-const credential = new aws.Credentials(accessKey, secretKey)
-
-main()
-
-function main() {
-  // サービス名は、API GatewayのAPIの場合は、execiute-api固定です。
-  const serviceName = 'execute-api'
-
-  // Signers.V4クラスのコンストラクタに渡すオプションを作成します。
-  const request = {
-    // api gatewayのURL
-    url: 'https://XXXXXXXXX.execute-api.ap-northeast-1.amazonaws.com/dev/',
-    headers: {},
+const generateOptions = ({ serviceName, region, url, headers, bodyJson }) => {
+  const options = {
+    headers: {
+      ...headers,
+      'Content-Length': Buffer.byteLength(bodyJson),
+    },
+    body: bodyJson,
   }
 
-  // api gatewayのURLからホスト、パス、クエリストリングを抽出
-  const parts = request.url.split('?')
-  const host = parts[0].substr(8, parts[0].indexOf('/', 8) - 8)
-  const path = parts[0].substr(parts[0].indexOf('/', 8))
-  const querystring = parts[1]
+  // URLからホスト、パス、クエリストリングを抽出
+  const urlObj = new URL(url)
+  const host = urlObj.host
+  const path = urlObj.pathname
+  const querystring = urlObj.search.slice(1)
 
   // V4クラスのコンストラクタの引数に沿う形でoptionsを作成
   const now = new Date()
-  request.headers.host = host
-  request.pathname = () => path
-  request.methodIndex = 'post'
-  request.search = () => (querystring ? querystring : '')
-  request.region = 'ap-northeast-1'
-  request.method = 'POST'
+  options.headers.host = host
+  options.pathname = () => path
+  options.methodIndex = 'post'
+  options.search = () => (querystring ? querystring : '')
+  options.region = region
+  options.method = 'POST'
 
   // V4クラスのインスタンスを作成
-  const signer = new core.Signers.V4(request, serviceName)
+  const signer = new core.Signers.V4(options, serviceName)
 
   // SigV4署名
+  const accessKey = process.env.AWS_ACCESS_KEY_ID
+  const secretKey = process.env.AWS_SECRET_ACCESS_KEY
+  const credential = new aws.Credentials(accessKey, secretKey)
   signer.addAuthorization(credential, now)
 
-  //　署名されたヘッダーを出力
-  console.log(request.headers)
+  return options
 }
+
+const httpsRequest = (url, options, bodyJson) => {
+  // AWSにhttpsリクエスト
+  const req = https.request(url, options, (res) => {
+    console.log(`STATUS: ${res.statusCode}`)
+    console.log(`HEADERS: ${JSON.stringify(res.headers)}`)
+    res.setEncoding('utf8')
+    res.on('data', (chunk) => {
+      console.log(`BODY: ${chunk}`)
+    })
+    res.on('end', () => {
+      console.log('No more data in response.')
+    })
+  })
+
+  req.on('error', (e) => {
+    console.error(`problem with request: ${e.message}`)
+  })
+
+  // Write data to request body
+  req.write(bodyJson)
+  req.end()
+}
+
+const main = ({ serviceName, region, url, headers, body }) => {
+  const bodyJson = JSON.stringify(body)
+  const options = generateOptions({ serviceName, region, url, headers, bodyJson })
+  httpsRequest(url, options, bodyJson)
+}
+
+main({
+  serviceName: 'execute-api',
+  region: 'ap-northeast-1',
+  url: process.env.API_GATEWAY_URL,
+  headers: {
+    'foo': 'bar',
+    'Content-Type': 'application/json',
+  },
+  body: {
+    one: 1,
+    two: 2,
+    three: 3,
+  },
+})
