@@ -2,9 +2,24 @@
 
 // 出典: https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Programming.LowLevelAPI.html#Programming.LowLevelAPI.RequestFormat
 
-import request from './awsLowLevelApi'
+import { post } from './awsLowLevelApi'
 
-request({
+type Request = {
+  TableName: string
+  Key: {
+    AnimalType: { S: string }
+    Name: { S: string }
+  }
+}
+
+type Response = {
+  Item: {
+    AnimalType: { S: string }
+    Name: { S: string }
+  }
+}
+
+post<Request, Response>({
   serviceName: 'dynamodb',
   region: 'ap-northeast-1',
   url: 'https://dynamodb.ap-northeast-1.amazonaws.com',
@@ -20,4 +35,6 @@ request({
       Name: { S: 'Fido' },
     },
   },
+}).then((data) => {
+  console.log(data)
 })
