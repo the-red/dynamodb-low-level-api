@@ -8,7 +8,7 @@ import { defaultProvider } from '@aws-sdk/credential-provider-node'
 import { request } from 'undici'
 dotenv.config()
 
-export const post = async <T = any>({
+export const post = async ({
   serviceName,
   region,
   url,
@@ -19,7 +19,7 @@ export const post = async <T = any>({
   region: string
   url: string
   headers: Record<string, string>
-  body: T
+  body: any
 }) => {
   const apiUrl = new URL(url)
   const signatureV4 = new SignatureV4({
